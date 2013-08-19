@@ -92,7 +92,9 @@ module Spree
 
       ebs_payment_method = Spree::PaymentMethod.where(:type => "Spree::PaymentMethod::Ebsin").last
       payment = @order.payments.where(:payment_method_id => ebs_payment_method.id).first
+      payment = @order.payments.create!(:amount => 0,  :payment_method_id => @gateway.id) if payment.blank?
       payment.source = source
+      payment.amount = source.amount
       payment.save
       payment.complete!
     end
