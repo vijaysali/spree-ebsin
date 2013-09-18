@@ -42,6 +42,11 @@ module Spree
         @bill_address, @ship_address =  @order.bill_address, (@order.ship_address || @order.bill_address)
         render :action => :show
       end
+      
+      #have delayed job to check order after 30 mins in case 'comeback' fails
+      #make sure you have delayed_job in Gemfile to use this, comment following lines otherwise
+      ebs = Spree::EbsJob.new
+      ebs.delay.perform(@order.number)
     end
 
     # Result from EBS

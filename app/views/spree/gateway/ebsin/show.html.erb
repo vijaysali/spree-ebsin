@@ -40,7 +40,3 @@
   </div>
   <% end %>
 </fieldset>
-<% #have delayed job to check order after 30 mins in case 'comeback' fails %>
-<% #make sure you have delayed_job in Gemfile to use this, comment following lines otherwise %>
-<% ebs = Spree::EbsJob.new %>
-<% ebs.delay.perform(@order.number) %>
