@@ -39,6 +39,7 @@ module Spree
           send_mail("Order #{order.number} - No EBS payment found<EOM>")
         end
        end
+     end
     end
     
     def send_mail(subject)
