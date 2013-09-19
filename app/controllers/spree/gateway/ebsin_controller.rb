@@ -42,12 +42,17 @@ module Spree
         @bill_address, @ship_address =  @order.bill_address, (@order.ship_address || @order.bill_address)
         render :action => :show
       end
+
+      #have delayed job to check order after 30 mins in case 'comeback' fails
+      #make sure you have delayed_job in Gemfile to use this, comment following lines otherwise
+      ebs = Spree::EbsJob.new
+      ebs.delay.perform(@order.number)
     end
 
     # Result from EBS
     #
     def comeback
-      @order   = current_order #Spree::Order.find_by_id(params[:id])
+      @order   = current_order || Spree::Order.find_by_number(params[:id])
       @gateway = @order && @order.payments.first.payment_method
       #@gateway && @gateway.kind_of?(PaymentMethod::Ebsin) && params[:DR] 
       @data = ebsin_decode(params[:DR], @gateway.preferred_secret_key)
