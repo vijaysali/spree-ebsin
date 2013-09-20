@@ -22,7 +22,7 @@ module Spree
         response = http.request(request)
         data = Nokogiri::XML.parse(response.body)
         if data.elements.attribute("errorCode") == nil
-          if data.elements.attribute("amount") == order.amount
+          if data.elements.attribute("amount").value.to_f == order.amount.to_f
             payment = order.payment
             payment.state = "completed"
             payment.save
