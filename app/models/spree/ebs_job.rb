@@ -22,7 +22,7 @@ module Spree
         response = http.request(request)
         data = Nokogiri::XML.parse(response.body)
         if data.elements.attribute("errorCode") == nil
-          if data.elements.attribute("amount").value.to_f == order.amount.to_f
+          if data.elements.attribute("amount").value.to_f == order.total.to_f
             payment = order.payment
             payment.state = "completed"
             payment.save
@@ -30,7 +30,7 @@ module Spree
               send_mail("Order #{order.number} manually transitioned by bot <EOM>")
               Spree::Ebsinfo.create(:first_name => order.bill_address.firstname, :last_name => order.bill_address.lastname, :TransactionId => data.elements.attribute("TransactionID"), :PaymentId => data.elements.attribute("PaymentID"), :amount => data.elements.attribute("amount"), :order_id => order.id)
             else
-              send_mail("Order #{order.number} UNABLE manually transitioned by bot <EOM>")
+              send_mail("Order #{order.number} UNABLE  to transition by bot manual transition needs to be done. <EOM>")
             end
           else 
             send_mail("Order #{order.number} EBS amount not matching <EOM>")
