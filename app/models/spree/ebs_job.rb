@@ -4,7 +4,7 @@ module Spree
     def perform(number)
       order = Spree::Order.find_by_number(number)
       gateway = Spree::PaymentMethod::Ebsin.where(:environment => "production").first
-      unless order.blank? && order.state == "complete" && gateway.blank?
+      if order && order.state != "complete" && gateway
         uri = URI.parse( "https://secure.ebs.in/api/1_0" ); 
         params = {
           "Action" => 'statusByRef', 
@@ -38,6 +38,8 @@ module Spree
         else
           send_mail("Order #{order.number} - No EBS payment found<EOM>")
         end
+      else
+        send_mail("Order #{order.number}<EOM>") 
       end
     end
     
