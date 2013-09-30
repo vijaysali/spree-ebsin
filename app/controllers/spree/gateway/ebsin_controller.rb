@@ -53,6 +53,8 @@ module Spree
     #
     def comeback
       @order   = current_order || Spree::Order.find_by_number(params[:id])
+      payment = @order.payments.where(:payment_method_id => ebs_payment_method.id).first
+      payment = @order.payments.create!(:amount => 0,  :payment_method_id => ebs_payment_method.id) if payment.blank?
       @gateway = @order && @order.payments.first.payment_method
       #@gateway && @gateway.kind_of?(PaymentMethod::Ebsin) && params[:DR] 
       @data = ebsin_decode(params[:DR], @gateway.preferred_secret_key)
