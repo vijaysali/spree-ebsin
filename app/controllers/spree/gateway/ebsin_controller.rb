@@ -53,7 +53,7 @@ module Spree
     #
     def comeback
       @order   = current_order || Spree::Order.find_by_number(params[:id])
-      ebs_payment_method = Spree::PaymentMethod::Ebsin.where(:environment => "production").first
+      ebs_payment_method = Spree::PaymentMethod::Ebsin.where(:environment => Rails.env.to_s).first
       payment = @order.payments.where(:payment_method_id => ebs_payment_method.id).first
       payment = @order.payments.create!(:amount => 0,  :payment_method_id => ebs_payment_method.id) if payment.blank?
       @gateway = @order && @order.payments.first.payment_method
@@ -72,7 +72,7 @@ module Spree
         
         session[:order_id] = nil
         
-        @order.finalize!
+        #@order.finalize!
         redirect_to order_url(@order, {:checkout_complete => true, :token => @order.token}), :notice => I18n.t("payment_success")
       else
         ebs_error = @data["ResponseMessage"]      

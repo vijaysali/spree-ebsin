@@ -16,7 +16,7 @@ Spree::CheckoutController.class_eval do
         @order.reload
         @order.next
         session[:order_id] = nil
-        @order.finalize!
+        #@order.finalize!
         redirect_to order_url(@order, {:checkout_complete => true, :token => @order.token}), :notice => I18n.t("payment_success")
       end
     end
