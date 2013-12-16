@@ -69,7 +69,7 @@ module Spree
         
         @order.reload
         @order.next
-        order.add_christmas_cashback_offer if @order && @order.state == "complete"
+        @order.add_christmas_cashback_offer if @order && @order.state == "complete"
         session[:order_id] = nil
         
         #@order.finalize!
