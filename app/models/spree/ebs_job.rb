@@ -41,7 +41,6 @@ module Spree
       else
         send_mail("Order #{order.number}<EOM>") 
       end
-      order.add_christmas_cashback_offer if order && order.state == "complete"
     end
     
     def send_mail(subject)
