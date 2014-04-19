@@ -7,6 +7,8 @@ module Spree
     include Spree::Core::ControllerHelpers::Order
     include Spree::Core::ControllerHelpers::Auth
     include ERB::Util
+    include AffiliateCredits
+
     rescue_from ActiveRecord::RecordNotFound, :with => :render_404
     helper 'spree/products'
 
@@ -69,9 +71,16 @@ module Spree
         
         @order.reload
         @order.next
-        @order.add_christmas_cashback_offer if @order && @order.state == "complete"
-        session[:order_id] = nil
+        #~ @order.add_christmas_cashback_offer if @order && @order.state == "complete"
         
+        session[:order_id] = nil
+        #referal credits
+        if !Spree::Affiliate.where(user_id: spree_current_user.id).empty? && (@order.state == 'complete') && spree_current_user.orders.complete.count==1
+      sender=Spree::User.find(Spree::Affiliate.where(user_id: spree_current_user.id).first.partner_id)
+
+      #create credit (if required)
+      create_affiliate_credits(sender, spree_current_user, "purchase")
+      end
         #@order.finalize!
         redirect_to order_url(@order, {:checkout_complete => true, :token => @order.token}), :notice => I18n.t("payment_success")
       else
