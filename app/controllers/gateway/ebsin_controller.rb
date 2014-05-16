@@ -38,6 +38,10 @@ class Gateway::EbsinController < Spree::BaseController
   #
   def comeback
     @order   = Order.find_by_number(params[:id])
+    if @order.state=="complete"
+       coupon=Spree::CouponCoder.find_by_coupon_code(@order.coupon_code)
+       coupon.update_attributes(:status =>"closed") if coupon.present?
+    end
     @gateway = @order && @order.payments.first.payment_method
     if @gateway && @gateway.kind_of?(PaymentMethod::Ebsin) && params[:DR] &&
         (@data = ebsin_decode(params[:DR], @gateway.preferred_secret_key)) &&
