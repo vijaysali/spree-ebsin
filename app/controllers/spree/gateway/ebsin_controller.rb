@@ -55,10 +55,7 @@ module Spree
     #
     def comeback
       @order   = current_order || Spree::Order.find_by_number(params[:id])
-      if @order.state=="complete"
-         coupon=Spree::CouponCoder.find_by_coupon_code(@order.coupon_code)
-         coupon.update_attributes(:status =>"closed") if coupon.present?
-      end
+
       ebs_payment_method = Spree::PaymentMethod::Ebsin.where(:active => true,:environment => Rails.env.to_s).first
       payment = @order.payments.where(:payment_method_id => ebs_payment_method.id).first
       payment = @order.payments.create!(:amount => 0,  :payment_method_id => ebs_payment_method.id) if payment.blank?
@@ -76,7 +73,11 @@ module Spree
         @order.reload
         @order.next
         #~ @order.add_christmas_cashback_offer if @order && @order.state == "complete"
-        
+        #Coupon code update
+        if @order.state=="complete"
+         coupon=Spree::CouponCoder.find_by_coupon_code(@order.coupon_code)
+         coupon.update_attributes(:status =>"closed") if coupon.present?
+      end
         session[:order_id] = nil
         #referal credits
         if !Spree::Affiliate.where(user_id: spree_current_user.id).empty? && (@order.state == 'complete') && spree_current_user.orders.complete.count==1
