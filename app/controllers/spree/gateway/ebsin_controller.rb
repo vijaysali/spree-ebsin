@@ -55,6 +55,10 @@ module Spree
     #
     def comeback
       @order   = current_order || Spree::Order.find_by_number(params[:id])
+      if @order.state=="complete"
+         coupon=Spree::CouponCoder.find_by_coupon_code(@order.coupon_code)
+         coupon.update_attributes(:status =>"closed") if coupon.present?
+     end
       ebs_payment_method = Spree::PaymentMethod::Ebsin.where(:environment => Rails.env.to_s).first
       payment = @order.payments.where(:payment_method_id => ebs_payment_method.id).first
       payment = @order.payments.create!(:amount => 0,  :payment_method_id => ebs_payment_method.id) if payment.blank?
