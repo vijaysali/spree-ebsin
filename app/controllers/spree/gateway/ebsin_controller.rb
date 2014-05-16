@@ -17,15 +17,15 @@ module Spree
     skip_before_filter :verify_authenticity_token, :only => [:comeback]
 
     NECESSARY = [
-                 "Mode",
-                 "PaymentID",
-                 "DateCreated",
-                 "MerchantRefNo",
-                 "Amount",
-                 "TransactionID",
-                 "ResponseCode",
-                 "ResponseMessage"
-                ]
+      "Mode",
+      "PaymentID",
+      "DateCreated",
+      "MerchantRefNo",
+      "Amount",
+      "TransactionID",
+      "ResponseCode",
+      "ResponseMessage"
+    ]
 
 
     # Show form EBS for pay
@@ -58,8 +58,8 @@ module Spree
       if @order.state=="complete"
          coupon=Spree::CouponCoder.find_by_coupon_code(@order.coupon_code)
          coupon.update_attributes(:status =>"closed") if coupon.present?
-     end
-      ebs_payment_method = Spree::PaymentMethod::Ebsin.where(:environment => Rails.env.to_s).first
+      end
+      ebs_payment_method = Spree::PaymentMethod::Ebsin.where(:active => true,:environment => Rails.env.to_s).first
       payment = @order.payments.where(:payment_method_id => ebs_payment_method.id).first
       payment = @order.payments.create!(:amount => 0,  :payment_method_id => ebs_payment_method.id) if payment.blank?
       @gateway = @order && @order.payments.first.payment_method
@@ -80,11 +80,11 @@ module Spree
         session[:order_id] = nil
         #referal credits
         if !Spree::Affiliate.where(user_id: spree_current_user.id).empty? && (@order.state == 'complete') && spree_current_user.orders.complete.count==1
-      sender=Spree::User.find(Spree::Affiliate.where(user_id: spree_current_user.id).first.partner_id)
+          sender=Spree::User.find(Spree::Affiliate.where(user_id: spree_current_user.id).first.partner_id)
 
-      #create credit (if required)
-      create_affiliate_credits(sender, spree_current_user, "purchase")
-      end
+          #create credit (if required)
+          create_affiliate_credits(sender, spree_current_user, "purchase")
+        end
         #@order.finalize!
         redirect_to order_url(@order, {:checkout_complete => true, :token => @order.token}), :notice => I18n.t("payment_success")
       else
@@ -111,7 +111,7 @@ module Spree
       # record the payment
       source = Spree::Ebsinfo.create(:first_name => @order.bill_address.firstname, :last_name => @order.bill_address.lastname, :TransactionId => @data["TransactionID"], :PaymentId => @data["PaymentID"], :amount => @data["Amount"], :order_id => @order.id)
 
-      ebs_payment_method = Spree::PaymentMethod.where(:type => "Spree::PaymentMethod::Ebsin").last
+      ebs_payment_method = Spree::PaymentMethod.where(:active => true, :environment => Rails.env.to_s, :type => "Spree::PaymentMethod::Ebsin").last
       payment = @order.payments.where(:payment_method_id => ebs_payment_method.id).first
       payment = @order.payments.create!(:amount => 0,  :payment_method_id => ebs_payment_method.id) if payment.blank?
       payment.source = source
