@@ -16,10 +16,6 @@ Spree::CheckoutController.class_eval do
       elsif @order.total == 0.0 #wallet checkout
         @order.reload
         @order.next
-        if @order.state=="complete"
-         coupon=Spree::CouponCoder.find_by_coupon_code(@order.coupon_code)
-         coupon.update_attributes(:status =>"closed") if coupon.present?
-        end
         session[:order_id] = nil
          #referal credits
         if !Spree::Affiliate.where(user_id: spree_current_user.id).empty? && (@order.state == 'complete') && spree_current_user.orders.complete.count==1
