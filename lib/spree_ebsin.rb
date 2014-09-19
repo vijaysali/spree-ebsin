@@ -14,6 +14,7 @@ module SpreeEbsin
     initializer "spree.register.payment_methods" do |app|
       app.config.spree.payment_methods += [Spree::PaymentMethod::Ebsin]
       app.config.spree.payment_methods += [Spree::PaymentMethod::MobileWiki]
+      app.config.spree.payment_methods += [Spree::PaymentMethod::Rupay]
     end
     
     config.to_prepare &method(:activate).to_proc
