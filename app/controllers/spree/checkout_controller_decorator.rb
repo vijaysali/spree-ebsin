@@ -11,6 +11,8 @@ Spree::CheckoutController.class_eval do
         @payment_method = Spree::PaymentMethod.find(params[:order][:payments_attributes].first[:payment_method_id])
         if @payment_method && (@payment_method.kind_of?(Spree::PaymentMethod::Ebsin) || @payment_method.kind_of?(Spree::PaymentMethod::MobileWiki) || @payment_method.kind_of?(Spree::PaymentMethod::Rupay))
           @order.update_attributes(object_params)
+          x=MailerJob.new
+          x.delay.perform(@order,"cc_order_verfiy")
           redirect_to gateway_ebsin_path(:gateway_id => @payment_method.id, :order_id => @order.id)
         end
       elsif @order.total == 0.0 #wallet checkout
