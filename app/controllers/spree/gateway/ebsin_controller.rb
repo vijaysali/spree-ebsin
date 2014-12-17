@@ -32,23 +32,28 @@ module Spree
     #
     def show
       @order   = Spree::Order.find(params[:order_id])
-      @gateway = @order.available_payment_methods.find{|x| x.id == params[:gateway_id].to_i }
-      @order.payments.destroy_all
-      @hash = Digest::MD5.hexdigest(@gateway.preferred_secret_key+"|"+@gateway.preferred_account_id+"|"+@order.total.to_s+"|"+@order.number+"|"+[gateway_ebsin_comeback_url(@order),'DR={DR}'].join('?')+"|"+@gateway.preferred_mode)
-      payment = @order.payments.create!(:amount => 0,  :payment_method_id => @gateway.id)
-
-      if @order.blank? || @gateway.blank?
-        flash[:error] = I18n.t("invalid_arguments")
-        redirect_to :back
+      # If an Order is complete or canceled payment won't proceed.
+      if(@order.state == "complete" || @order.state == "canceled")
+        redirect_to "/",:alert => "Sorry, You have already made payment for this order." 
       else
-        @bill_address, @ship_address =  @order.bill_address, (@order.ship_address || @order.bill_address)
-        render :action => :show
-      end
+        @gateway = @order.available_payment_methods.find{|x| x.id == params[:gateway_id].to_i }
+        @order.payments.destroy_all
+        @hash = Digest::MD5.hexdigest(@gateway.preferred_secret_key+"|"+@gateway.preferred_account_id+"|"+@order.total.to_s+"|"+@order.number+"|"+[gateway_ebsin_comeback_url(@order),'DR={DR}'].join('?')+"|"+@gateway.preferred_mode)
+        payment = @order.payments.create!(:amount => 0,  :payment_method_id => @gateway.id)
 
-      #have delayed job to check order after 30 mins in case 'comeback' fails
-      #make sure you have delayed_job in Gemfile to use this, comment following lines otherwise
-      ebs = Spree::EbsJob.new
-      ebs.delay.perform(@order.number)
+        if @order.blank? || @gateway.blank?
+          flash[:error] = I18n.t("invalid_arguments")
+          redirect_to :back
+        else
+          @bill_address, @ship_address =  @order.bill_address, (@order.ship_address || @order.bill_address)
+          render :action => :show
+        end
+
+        #have delayed job to check order after 30 mins in case 'comeback' fails
+        #make sure you have delayed_job in Gemfile to use this, comment following lines otherwise
+        ebs = Spree::EbsJob.new
+        ebs.delay.perform(@order.number)
+      end
     end
 
     # Result from EBS
