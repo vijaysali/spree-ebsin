@@ -27,19 +27,19 @@ module Spree
             payment.state = "completed"
             payment.save
             if order.next
-              send_mail("Order #{order.number} manually transitioned by bot <EOM>")
+              send_mail("Order #{order.try(:number)} manually transitioned by bot <EOM>")
               Spree::Ebsinfo.create(:first_name => order.bill_address.firstname, :last_name => order.bill_address.lastname, :TransactionId => data.elements.attribute("TransactionID"), :PaymentId => data.elements.attribute("PaymentID"), :amount => data.elements.attribute("amount"), :order_id => order.id)
             else
-              send_mail("Order #{order.number} UNABLE  to transition by bot manual transition needs to be done. <EOM>")
+              send_mail("Order #{order.try(:number)} UNABLE  to transition by bot manual transition needs to be done. <EOM>")
             end
           else 
-            send_mail("Order #{order.number} EBS amount not matching <EOM>")
+            send_mail("Order #{order.try(:number)} EBS amount not matching <EOM>")
           end
         else
-          send_mail("Order #{order.number} - No EBS payment found<EOM>")
+          send_mail("Order #{order.try(:number)} - No EBS payment found<EOM>")
         end
       else
-        send_mail("Order #{order.number}<EOM>") 
+        send_mail("Order #{order.try(:number)}<EOM>") 
       end
     end
     
